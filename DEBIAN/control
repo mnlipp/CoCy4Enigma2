@@ -1,0 +1,12 @@
+Package: enigma2-plugin-cocy
+Version: 0.1
+Description: UPnP Renderer
+Section: base
+Priority: optional
+Maintainer: Michael Lipp <mnl@mnl.de>
+License: GPL
+Architecture: mipsel
+OE: enigma2
+Homepage: https://github.com/mnlipp/CoCyDreambox
+Depends: python-db, python-subprocess, python-xmlrpc, python-json, python-email, python-image, python-audio, python-multiprocessing, python-compile, python-devel, python-compression, python-distutils, python-sqlite3,  python-zlib, python-mutagen
+Source: https://github.com/mnlipp/CoCyDreambox/archive/master.zip

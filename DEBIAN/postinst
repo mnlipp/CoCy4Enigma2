@@ -1,0 +1,5 @@
+#!/bin/sh
+
+easy_install cocy
+
+exit 0
