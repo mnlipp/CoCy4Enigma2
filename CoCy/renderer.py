@@ -25,6 +25,8 @@ from cocy.providers import Manifest, MediaPlayer
 from Components.ServiceEventTracker import ServiceEventTracker
 from circuits_bricks.core.timers import Timer
 from circuits.core.events import Event
+from circuits_bricks.app.logger import Log
+import logging
 
 
 class DreamBoxPlayer(MediaPlayer):
@@ -49,8 +51,16 @@ class DreamBoxPlayer(MediaPlayer):
         self.onClose = [self._onClose] # Mimic as "screen"
         self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
             iPlayableService.evEOF: self._onEOF,
-            iPlayableService.evUpdatedEventInfo: self._onUpdatedEventInfo
+            iPlayableService.evUpdatedEventInfo: self._onUpdatedEventInfo,
+            iPlayableService.evTuneFailed: self._tune_failed
         })
+
+    def _tune_failed(self):
+        self.fire(Log(logging.DEBUG, "Tune failed"), "logger")
+
+    @property
+    def session(self):
+        return getattr(self, "_session", None)
 
     @handler("close_player")
     def _onClose(self, *args, **kwargs):
@@ -60,14 +70,17 @@ class DreamBoxPlayer(MediaPlayer):
         self._old_service_set = False    
                           
     def _onEOF(self):
-        print "[CoCy] End of Media"
+        self.fire(Log(logging.DEBUG, "End Of Media from player"), "logger")
+        self._session.nav.stopService()
         self._eom = True
         self.fire(MediaPlayer.EndOfMedia())
 
     def _onUpdatedEventInfo(self):
+        self.fire(Log(logging.DEBUG, 
+                      "Updated Event Info from player"), "logger")
         if self._on_async_done is not None:
-            self._on_async_done()
-            self._on_async_done = None
+            if self._on_async_done():
+                self._on_async_done = None
                                                    
     def _pausable(self):
         service = self._session.nav.getCurrentService()
@@ -94,16 +107,17 @@ class DreamBoxPlayer(MediaPlayer):
             self._eom = False
             self._idle_Timer = Timer(5, Event.create("ClosePlayer")) \
                 .register(self)
-            print "[CoCy] Stopped"
+            self.fire(Log(logging.DEBUG, "Player stopped"), "logger")
         if "state" in changed and changed["state"] == "PAUSED":
             pausable = self._pausable()
             if pausable:
                 pausable.pause()
             self._pausing = True
-            print "[CoCy] Paused"
+            self.fire(Log(logging.DEBUG, "Player paused"), "logger")
         if "source" in changed:
             self._service = eServiceReference(4097, 0, changed["source"])
-            print "[CoCy] Going to play %s" % changed["source"]
+            self.fire(Log(logging.DEBUG, "Player service set to %s"
+                          % changed["source"]), "logger")
             if self._eom:
                 self._on_play()
 
@@ -128,14 +142,17 @@ class DreamBoxPlayer(MediaPlayer):
             self.state = "PLAYING"
         else:
             def _play_started():
+                if not self._seekable():
+                    return False
                 self.state = "PLAYING"
-                print "[CoCy] Playing..."
+                self.fire(Log(logging.DEBUG, "Player playing"), "logger")
                 if self.current_track_duration is None:
                     self.current_track_duration = self._duration()
             self._on_async_done = _play_started
-            self._session.nav.playService(self._service)
+            self.fire(Log(logging.DEBUG, "Starting player (transitioning)"),
+                      "logger")
             self._eom = False
-            print "[CoCy] Transitioning..."
+            self._session.nav.playService(self._service)
             self.state = "TRANSITIONING"
         
     def _duration(self):
@@ -172,6 +189,7 @@ class DreamBoxPlayer(MediaPlayer):
         def seek_end():
             self.state = cur_state
             print "[CoCy] Resumed " + self.state
+            return True
         self._on_async_done = seek_end
         self.state = "TRANSITIONING"
         print "[CoCy] Transitioning..."
