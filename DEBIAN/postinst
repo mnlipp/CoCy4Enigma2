@@ -1,5 +1,11 @@
 #!/bin/sh
 
-easy_install cocy
+cd /tmp/cocy-install/
+rm -rf cocy-*
+tar xzf src.tar.gz
+cd cocy-*
+python setup.py install
+cd /tmp
+rm -rf cocy-install
 
 exit 0
