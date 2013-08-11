@@ -1,5 +1,5 @@
-CoCyDreambox
-============
+CoCyEnigma2
+===========
 
 Since I had my Dreambox, I have been looking for a UPnP renderer.
 End of 2012 an implementation seemed to appear, but it wouldn't
