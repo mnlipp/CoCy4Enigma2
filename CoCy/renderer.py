@@ -52,6 +52,8 @@ class DreamBoxPlayer(MediaPlayer):
         self.__event_tracker = ServiceEventTracker(screen=self, eventmap={
             iPlayableService.evEOF: self._onEOF,
             iPlayableService.evUpdatedEventInfo: self._onUpdatedEventInfo,
+            iPlayableService.evUpdatedInfo: self._onUpdatedInfo,
+            iPlayableService.evBuffering: self._onBuffering,
             iPlayableService.evTuneFailed: self._tune_failed
         })
 
@@ -76,9 +78,23 @@ class DreamBoxPlayer(MediaPlayer):
         self.fire(MediaPlayer.EndOfMedia())
 
     def _onUpdatedEventInfo(self):
-        self.fire(Log(logging.DEBUG, 
-                      "Updated Event Info from player"), "logger")
         if self._on_async_done is not None:
+            self.fire(Log(logging.DEBUG, 
+                      "Updated Event Info from player"), "logger")
+            if self._on_async_done():
+                self._on_async_done = None
+                                                   
+    def _onUpdatedInfo(self):
+        if self._on_async_done is not None:
+            self.fire(Log(logging.DEBUG, 
+                      "Updated Info from player"), "logger")
+            if self._on_async_done():
+                self._on_async_done = None
+                                                   
+    def _onBuffering(self):
+        if self._on_async_done is not None:
+            self.fire(Log(logging.DEBUG, 
+                      "Buffering from player"), "logger")
             if self._on_async_done():
                 self._on_async_done = None
                                                    
