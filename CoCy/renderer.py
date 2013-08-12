@@ -31,7 +31,7 @@ import logging
 
 class DreamBoxPlayer(MediaPlayer):
 
-    manifest = Manifest("DreamBox Media Renderer", "DreamBox Media Renderer")
+    manifest = Manifest("Enigma2 Media Renderer", "Enigma2 Media Renderer")
 
     def __init__(self, session):
         super(DreamBoxPlayer, self).__init__(self.manifest)
