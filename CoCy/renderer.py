@@ -164,6 +164,7 @@ class DreamBoxPlayer(MediaPlayer):
                 self.fire(Log(logging.DEBUG, "Player playing"), "logger")
                 if self.current_track_duration is None:
                     self.current_track_duration = self._duration()
+                return True
             self._on_async_done = _play_started
             self.fire(Log(logging.DEBUG, "Starting player (transitioning)"),
                       "logger")
