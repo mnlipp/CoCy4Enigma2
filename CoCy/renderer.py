@@ -131,11 +131,16 @@ class DreamBoxPlayer(MediaPlayer):
             self._pausing = True
             self.fire(Log(logging.DEBUG, "Player paused"), "logger")
         if "source" in changed:
-            self._service = eServiceReference(4097, 0, changed["source"])
-            self.fire(Log(logging.DEBUG, "Player service set to %s"
+            try:
+                self._service = eServiceReference(4097, 0, changed["source"])
+                self.fire(Log(logging.DEBUG, "Player service set to %s"
                           % changed["source"]), "logger")
-            if self._eom:
-                self._on_play()
+                if self._eom:
+                    self._on_play()
+            except Exception as e:
+                self.fire(Log(logging.ERROR, \
+                    "Failed to set player service to %s: %s"
+                    % (changed["source"], type(e))), "logger")
 
     @handler("play", override=True)
     def _on_play(self):
@@ -166,11 +171,15 @@ class DreamBoxPlayer(MediaPlayer):
                     self.current_track_duration = self._duration()
                 return True
             self._on_async_done = _play_started
+            self.state = "TRANSITIONING"
             self.fire(Log(logging.DEBUG, "Starting player (transitioning)"),
                       "logger")
             self._eom = False
-            self._session.nav.playService(self._service)
-            self.state = "TRANSITIONING"
+            try:
+                self._session.nav.playService(self._service)
+            except Exception as e:
+                self.fire(Log(logging.ERROR, "Failed to start playing: %s"
+                    % type(e)), "logger")
         
     def _duration(self):
         print "[CoCy] Getting duration..."
