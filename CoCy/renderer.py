@@ -27,11 +27,13 @@ from circuits_bricks.core.timers import Timer
 from circuits.core.events import Event
 from circuits_bricks.app.logger import Log
 import logging
+from socket import gethostname
 
 
 class DreamBoxPlayer(MediaPlayer):
 
-    manifest = Manifest("Enigma2 Media Renderer", "Enigma2 Media Renderer")
+    manifest = Manifest("Media Renderer on " + gethostname(),
+                        "Media Renderer on " + gethostname())
 
     def __init__(self, session):
         super(DreamBoxPlayer, self).__init__(self.manifest)
