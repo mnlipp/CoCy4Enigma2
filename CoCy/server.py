@@ -20,7 +20,7 @@
 """
 from circuits_bricks.app import Application
 from cocy.upnp.device_server import UPnPDeviceServer
-from renderer import DreamBoxPlayer
+from renderer import Enigma2Player
 
 CONFIG = {
     "logging": {
@@ -49,7 +49,7 @@ def start(session):
     
     # The server    
     UPnPDeviceServer(application.app_dir).register(application)
-    player = DreamBoxPlayer(session)
+    player = Enigma2Player(session)
     print "[CoCy] Player: " + str(player)
     player.register(application)
     

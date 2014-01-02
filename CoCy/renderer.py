@@ -28,15 +28,18 @@ from circuits.core.events import Event
 from circuits_bricks.app.logger import Log
 import logging
 from socket import gethostname
+from xml import etree
+from xml.etree.ElementTree import QName
+from picviewer import PictureScreen
 
 
-class DreamBoxPlayer(MediaPlayer):
+class Enigma2Player(MediaPlayer):
 
     manifest = Manifest("Media Renderer on " + gethostname(),
                         "Media Renderer on " + gethostname())
 
     def __init__(self, session):
-        super(DreamBoxPlayer, self).__init__(self.manifest)
+        super(Enigma2Player, self).__init__(self.manifest)
         self._session = session
         self._old_service_set = False
         self._old_service = None
@@ -46,6 +49,8 @@ class DreamBoxPlayer(MediaPlayer):
         self._eom = False
         self._on_async_done = None
 
+        self._picDlg = self._session.instantiateDialog(PictureScreen)
+        
         self._volctrl = eDVBVolumecontrol.getInstance()
         vol = self._volctrl.getVolume()
         self.volume = vol / 100
@@ -59,6 +64,19 @@ class DreamBoxPlayer(MediaPlayer):
             iPlayableService.evTuneFailed: self._tune_failed
         })
 
+    def supportedMediaTypes(self):
+        return ["http-get:*:audio/mpeg:*", "http-get:*:audio/ogg:*",
+                "http-get:*:video/MP2T:*", "http-get:*:audio/mp4:*",
+                "http-get:*:application/mp4:*", "http-get:*:video/mp4:*",
+                "http-get:*:audio/3gpp:*", "http-get:*:video/3gpp:*",
+                "http-get:*:audio/3gpp2:*", "http-get:*:video/3gpp2:*",
+                "http-get:*:application/vnd.ms-asf:*", 
+                "http-get:*:image/jpeg:*", "http-get:*:image/gif:*",
+                "http-get:*:image/png:*",
+                # those are not officially asigned!
+                "http-get:*:video/mpeg:*", "http-get:*:video/avi:*",
+                "http-get:*:image/bmp:*"]
+
     def _tune_failed(self):
         self.fire(Log(logging.DEBUG, "Tune failed"), "logger")
 
@@ -69,6 +87,8 @@ class DreamBoxPlayer(MediaPlayer):
     @handler("close_player")
     def _onClose(self, *args, **kwargs):
         print "[CoCy] Closing"
+        if self._picDlg.execing:
+            self._picDlg.close()
         if self._old_service_set:
             self._session.nav.playService(self._old_service)
         self._old_service_set = False    
@@ -164,6 +184,24 @@ class DreamBoxPlayer(MediaPlayer):
             print "[CoCy] Playing..."
             self.state = "PLAYING"
         else:
+            desc = etree.ElementTree.fromstring(self.source_meta_data)
+            from cocy.upnp import DIDL_LITE_NS
+            protocolInfo = desc.find(str(QName(DIDL_LITE_NS, "item")) + "/"
+                                     + str(QName(DIDL_LITE_NS, "res"))) \
+                                     .get("protocolInfo")
+            mimetype = protocolInfo.split(":")[2]
+            if mimetype.startswith("image"):
+                self.fire(Log(logging.DEBUG, "Playing picture"), "logger")
+                self.state = "TRANSITIONING"
+                if not self._picDlg.execing:
+                    self._session.execDialog(self._picDlg)
+                def _pic_showing():
+                    self.state = "PLAYING"
+                self._picDlg.loadPicture(self._source, mimetype, _pic_showing)
+                return
+            if self._picDlg.execing:
+                self._picDlg.close()
+            
             def _play_started():
                 if not self._seekable():
                     return False
@@ -182,7 +220,7 @@ class DreamBoxPlayer(MediaPlayer):
             except Exception as e:
                 self.fire(Log(logging.ERROR, "Failed to start playing: %s"
                     % type(e)), "logger")
-        
+
     def _duration(self):
         print "[CoCy] Getting duration..."
         seek = self._seekable()
