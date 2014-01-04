@@ -1,5 +1,5 @@
 Package: enigma2-plugin-cocy
-Version: 0.2
+Version: 0.2.1
 Description: UPnP Renderer
 Section: base
 Priority: optional

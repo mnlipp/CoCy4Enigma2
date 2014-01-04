@@ -9,6 +9,6 @@ rm -rf cocy-install
 
 cd
 
-easy_install cocy
+easy_install -U cocy
 
 exit 0
