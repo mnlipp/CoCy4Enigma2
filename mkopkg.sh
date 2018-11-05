@@ -9,6 +9,6 @@ cp ez_setup.py build/tmp/cocy-install/
 (cd build; echo "2.0" > debian-binary)
 VERSION=`fgrep Version: DEBIAN/control | sed -e 's/Version: *//'`
 mkdir -p dist
-rm -f dist/enigma2-plugin-cocy_${VERSION}.ipk
-(cd build; ar -r ../dist/enigma2-plugin-cocy_${VERSION}.ipk ./debian-binary ./*.tar.gz)
-(cd dist; ar t enigma2-plugin-cocy_${VERSION}.ipk)
+rm -f dist/enigma2-plugin-extensions-cocy_${VERSION}.ipk
+(cd build; ar -r ../dist/enigma2-plugin-extensions-cocy_${VERSION}.ipk ./debian-binary ./*.tar.gz)
+(cd dist; ar t enigma2-plugin-extensions-cocy_${VERSION}.ipk)

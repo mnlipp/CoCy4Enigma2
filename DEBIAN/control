@@ -1,5 +1,5 @@
-Package: enigma2-plugin-cocy
-Version: 0.2.1
+Package: enigma2-plugin-extensions-cocy
+Version: 0.2.2
 Description: UPnP Renderer
 Section: base
 Priority: optional
@@ -7,6 +7,6 @@ Maintainer: Michael Lipp <mnl@mnl.de>
 License: GPL
 Architecture: mipsel
 OE: enigma2
-Homepage: https://github.com/mnlipp/CoCyEnigma2
-Depends: python-db, python-subprocess, python-xmlrpc, python-json, python-email, python-image, python-audio, python-multiprocessing, python-compile, python-dev, python-compression, python-distutils, python-sqlite3,  python-zlib, python-mutagen, python-unittest
+Homepage: https://github.com/mnlipp/CoCy4Enigma2
+Depends: python-db, python-subprocess, python-xmlrpc, python-json, python-email, python-image, python-audio, python-multiprocessing, python-compile, python-compression, python-distutils, python-sqlite3,  python-zlib, python-mutagen, python-unittest
 Source: https://github.com/mnlipp/CoCyEnigma2/archive/master.zip
