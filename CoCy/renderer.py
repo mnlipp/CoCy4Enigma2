@@ -25,7 +25,7 @@ from cocy.providers import Manifest, MediaPlayer
 from Components.ServiceEventTracker import ServiceEventTracker
 from circuits_bricks.core.timers import Timer
 from circuits.core.events import Event
-from circuits_bricks.app.logger import Log
+from circuits_bricks.app.logger import log
 import logging
 from socket import gethostname
 from xml import etree
@@ -78,7 +78,7 @@ class Enigma2Player(MediaPlayer):
                 "http-get:*:image/bmp:*"]
 
     def _tune_failed(self):
-        self.fire(Log(logging.DEBUG, "Tune failed"), "logger")
+        self.fire(log(logging.DEBUG, "Tune failed"), "logger")
 
     @property
     def session(self):
@@ -94,28 +94,28 @@ class Enigma2Player(MediaPlayer):
         self._old_service_set = False    
                           
     def _onEOF(self):
-        self.fire(Log(logging.DEBUG, "End Of Media from player"), "logger")
+        self.fire(log(logging.DEBUG, "End Of Media from player"), "logger")
         self._session.nav.stopService()
         self._eom = True
-        self.fire(MediaPlayer.EndOfMedia())
+        self.fire(MediaPlayer.end_of_media())
 
     def _onUpdatedEventInfo(self):
         if self._on_async_done is not None:
-            self.fire(Log(logging.DEBUG, 
+            self.fire(log(logging.DEBUG, 
                       "Updated Event Info from player"), "logger")
             if self._on_async_done():
                 self._on_async_done = None
                                                    
     def _onUpdatedInfo(self):
         if self._on_async_done is not None:
-            self.fire(Log(logging.DEBUG, 
+            self.fire(log(logging.DEBUG, 
                       "Updated Info from player"), "logger")
             if self._on_async_done():
                 self._on_async_done = None
                                                    
     def _onBuffering(self):
         if self._on_async_done is not None:
-            self.fire(Log(logging.DEBUG, 
+            self.fire(log(logging.DEBUG, 
                       "Buffering from player"), "logger")
             if self._on_async_done():
                 self._on_async_done = None
@@ -143,24 +143,24 @@ class Enigma2Player(MediaPlayer):
             self._session.nav.stopService()
             self._pausing = False
             self._eom = False
-            self._idle_Timer = Timer(5, Event.create("ClosePlayer")) \
+            self._idle_Timer = Timer(5, Event.create("close_player")) \
                 .register(self)
-            self.fire(Log(logging.DEBUG, "Player stopped"), "logger")
+            self.fire(log(logging.DEBUG, "Player stopped"), "logger")
         if "state" in changed and changed["state"] == "PAUSED":
             pausable = self._pausable()
             if pausable:
                 pausable.pause()
             self._pausing = True
-            self.fire(Log(logging.DEBUG, "Player paused"), "logger")
+            self.fire(log(logging.DEBUG, "Player paused"), "logger")
         if "source" in changed:
             try:
                 self._service = eServiceReference(4097, 0, changed["source"])
-                self.fire(Log(logging.DEBUG, "Player service set to %s"
+                self.fire(log(logging.DEBUG, "Player service set to %s"
                           % changed["source"]), "logger")
                 if self._eom:
                     self._on_play()
             except Exception as e:
-                self.fire(Log(logging.ERROR, \
+                self.fire(log(logging.ERROR, \
                     "Failed to set player service to %s: %s"
                     % (changed["source"], type(e))), "logger")
 
@@ -191,7 +191,7 @@ class Enigma2Player(MediaPlayer):
                                      .get("protocolInfo")
             mimetype = protocolInfo.split(":")[2]
             if mimetype.startswith("image"):
-                self.fire(Log(logging.DEBUG, "Playing picture"), "logger")
+                self.fire(log(logging.DEBUG, "Playing picture"), "logger")
                 self.state = "TRANSITIONING"
                 if not self._picDlg.execing:
                     self._session.execDialog(self._picDlg)
@@ -206,19 +206,19 @@ class Enigma2Player(MediaPlayer):
                 if not self._seekable():
                     return False
                 self.state = "PLAYING"
-                self.fire(Log(logging.DEBUG, "Player playing"), "logger")
+                self.fire(log(logging.DEBUG, "Player playing"), "logger")
                 if self.current_track_duration is None:
                     self.current_track_duration = self._duration()
                 return True
             self._on_async_done = _play_started
             self.state = "TRANSITIONING"
-            self.fire(Log(logging.DEBUG, "Starting player (transitioning)"),
+            self.fire(log(logging.DEBUG, "Starting player (transitioning)"),
                       "logger")
             self._eom = False
             try:
                 self._session.nav.playService(self._service)
             except Exception as e:
-                self.fire(Log(logging.ERROR, "Failed to start playing: %s"
+                self.fire(log(logging.ERROR, "Failed to start playing: %s"
                     % type(e)), "logger")
 
     def _duration(self):
