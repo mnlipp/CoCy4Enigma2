@@ -1,14 +1,5 @@
 #!/bin/sh
 
-cd /tmp/cocy-install/
-if [ ! -x /usr/bin/easy_install ]; then
-  python ez_setup.py
-fi
-cd /tmp
-rm -rf cocy-install
-
-cd
-
-easy_install -U cocy
+pip install cocy==0.3
 
 exit 0
