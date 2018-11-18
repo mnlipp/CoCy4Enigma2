@@ -129,8 +129,11 @@ class Enigma2Player(MediaPlayer):
             print "[CoCy] Closing"
             if self._picDlg.execing:
                 self._picDlg.close()
-            if self._old_service_set:
+            if self._old_service_set and self._old_service:
+                print "[CoCy] Restoring old service " + self._old_service.getName()
                 self._session.nav.playService(self._old_service)
+            else:
+                print "[CoCy] No old service to restore."
             self._old_service_set = False
         blockingCallOnMainThread(_close)
                           
@@ -156,9 +159,10 @@ class Enigma2Player(MediaPlayer):
         if "source" in changed:
             def _source():
                 try:
+                    print "[CoCy] Creating service reference for " + str(changed["source"])
                     self._service = eServiceReference(4097, 0, changed["source"])
                     self._seek_offset = 0
-                    self.fire(log(logging.DEBUG, "Player service set to %s"
+                    self.fire(log(logging.DEBUG, "Created service %s" 
                                   % changed["source"]), "logger")
                     if self._eom:
                         self._on_play()
@@ -182,12 +186,7 @@ class Enigma2Player(MediaPlayer):
         if self._idle_Timer is not None:
             self._idle_Timer.unregister()
         def _play():
-            if not self._old_service_set:
-                # First invocation, save currently running service
-                self._old_service = self._session.nav \
-                    .getCurrentlyPlayingServiceReference()
-                self._old_service_set = True
-                self._session.nav.stopService()
+            self._maybe_save_old_service()
             if self._pausing:
                 pausable = self._pausable()
                 if pausable:
@@ -225,6 +224,20 @@ class Enigma2Player(MediaPlayer):
                     % type(e)), "logger")
         self.state = "TRANSITIONING"
         callOnMainThread(_play)
+
+    def _maybe_save_old_service(self):
+        # Called from main thread
+        if self._old_service_set:
+            return
+        # First invocation, save currently running service
+        self._old_service = self._session.nav \
+            .getCurrentlyPlayingServiceOrGroup()
+        self._old_service_set = True
+        if self._old_service:
+            print "[CoCy] Saved old service " + self._old_service.getName()
+        else:
+            print "[CoCy] No old service to save."
+        self._session.nav.stopService()
 
     def _seekable(self):
         # Always called by main thread
