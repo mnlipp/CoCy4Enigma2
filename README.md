@@ -22,4 +22,21 @@ should install automatically. As, however, I have been experimenting
 quite some time, my box is no longer "clean". If you experience any
 problems, please report them by creating an
 [issue](https://github.com/mnlipp/CoCy4Enigma2/issues).
- 
+
+Reporting errors
+----------------
+
+I have found that there are a lot of buggy control point implementations around. 
+Therefore, if you experience a problem, first try to reproduce it using the 
+[Fritz!App Media](https://play.google.com/store/apps/details?id=de.avm.android.fritzappmedia).
+If things work when using this app, then your problem is most likely caused by 
+your control point implementation.
+
+Another thing that I've found out is that it is futile to attempt to help 
+people who don't use OpenPLi (like I do). When I started this, I thought 
+that with respect to the E2 API used by CoCy all E2 systems are the same, 
+but this didn't prove to be true.
+
+So, sorry, but unless you can reproduce a bug with the control point and E2 
+system mentioned above or something that shows in the logs, I won't be able to 
+help your.
